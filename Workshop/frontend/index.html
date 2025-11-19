@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Keycloak Demo</title>
+</head>
+<body>
+  <div id="content">
+    <button id="loginBtn">Login</button>
+    <button id="logoutBtn" style="display:none;">Logout</button>
+    <p id="welcome"></p>
+  </div>
+
+  <!-- Keycloak adapter -->
+  <script src="https://cdn.jsdelivr.net/npm/keycloak-js@latest/dist/keycloak.min.js"></script>
+  <script>
+    const keycloak = new Keycloak({
+      url: "http://localhost:8080/",
+      realm: "myrealm",
+      clientId: "simple-web"
+    });
+
+    keycloak.init({ onLoad: 'check-sso' }).then(authenticated => {
+      if (authenticated) {
+        document.getElementById("loginBtn").style.display = "none";
+        document.getElementById("logoutBtn").style.display = "inline";
+        const username = keycloak.tokenParsed?.preferred_username || "gebruiker";
+        document.getElementById("welcome").innerText = `Hey, ${username}`;
+      }
+    });
+
+    document.getElementById("loginBtn").onclick = () => keycloak.login();
+    document.getElementById("logoutBtn").onclick = () => keycloak.logout();
+  </script>
+</body>
+</html>
