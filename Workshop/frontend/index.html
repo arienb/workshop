@@ -22,15 +22,25 @@
 
     keycloak.init({ onLoad: 'check-sso' }).then(authenticated => {
       if (authenticated) {
+        const roles = keycloak.tokenParsed?.realm_access?.roles || [];
+        const username = keycloak.tokenParsed?.preferred_username || "gebruiker";
+
+        // Toon UI
         document.getElementById("loginBtn").style.display = "none";
         document.getElementById("logoutBtn").style.display = "inline";
-        const username = keycloak.tokenParsed?.preferred_username || "gebruiker";
         document.getElementById("welcome").innerText = `Hey, ${username}`;
+
+        // Redirect op basis van rol
+        if (roles.includes("secret")) {
+          window.location.href = "secret.html";
+        } else {
+          window.location.href = "welcome.html";
+        }
       }
     });
 
     document.getElementById("loginBtn").onclick = () => keycloak.login();
-    document.getElementById("logoutBtn").onclick = () => keycloak.logout();
+    document.getElementById("logoutBtn").onclick = () => keycloak.logout({ redirectUri: 'http://localhost:5500/index.html' });
   </script>
 </body>
 </html>
