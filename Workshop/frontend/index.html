@@ -1,66 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Keycloak Workshop Frontend</title>
+  <meta charset="UTF-8" />
+  <title>Login</title>
   <script src="https://cdn.jsdelivr.net/npm/keycloak-js@20.0.3/dist/keycloak.min.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    button { margin: 5px; padding: 10px; }
-    #userinfo { margin-top: 20px; white-space: pre-wrap; background: #f4f4f4; padding: 10px; }
-  </style>
 </head>
 <body>
-  <h1>Keycloak Workshop Demo</h1>
-
+  <h1>Login pagina</h1>
   <button id="loginBtn">Login</button>
-  <button id="logoutBtn" disabled>Logout</button>
-  <button id="showTokenBtn" disabled>Show Token</button>
-
-  <div id="userinfo"></div>
 
   <script>
-    // Keycloak config
     const keycloak = new Keycloak({
-      url: 'http://localhost:8080',       // Keycloak server URL
-      realm: 'workshop',                       // Name van je Realm
-      clientId: 'frontend-demo',               // Client ID die je maakt in Keycloak
+      url: 'http://127.0.0.1:8080',
+      realm: 'workshop',
+      clientId: 'frontend-demo'
     });
 
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const showTokenBtn = document.getElementById('showTokenBtn');
-    const userInfoDiv = document.getElementById('userinfo');
-
-    // Initialize Keycloak
-    keycloak.init({ onLoad: 'check-sso', pkceMethod: 'S256' }).then(authenticated => {
-      updateUI(authenticated);
-    });
-
-    function updateUI(authenticated) {
-      loginBtn.disabled = authenticated;
-      logoutBtn.disabled = !authenticated;
-      showTokenBtn.disabled = !authenticated;
-
-      if (authenticated) {
-        keycloak.loadUserProfile().then(profile => {
-          userInfoDiv.textContent = `Hello ${profile.firstName} ${profile.lastName}\nUsername: ${profile.username}\nRoles: ${keycloak.tokenParsed?.realm_access?.roles}`;
-        });
-      } else {
-        userInfoDiv.textContent = 'Not logged in';
-      }
-    }
-
-    loginBtn.addEventListener('click', () => {
-      keycloak.login();
-    });
-
-    logoutBtn.addEventListener('click', () => {
-      keycloak.logout();
-    });
-
-    showTokenBtn.addEventListener('click', () => {
-      alert(keycloak.token);
+    document.getElementById('loginBtn').addEventListener('click', () => {
+      keycloak.init({
+        onLoad: 'login-required', 
+        pkceMethod: 'S256', 
+        redirectUri: 'http://127.0.0.1:5500/frontend/welcome.html'
+      }).then(authenticated => {
+        if(authenticated) {
+          console.log('Authenticated, redirecting...');
+        }
+      }).catch(err => console.error('Login failed', err));
     });
   </script>
 </body>
