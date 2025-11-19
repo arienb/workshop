@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Keycloak Workshop Frontend</title>
+  <script src="https://cdn.jsdelivr.net/npm/keycloak-js@20.0.3/dist/keycloak.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    button { margin: 5px; padding: 10px; }
+    #userinfo { margin-top: 20px; white-space: pre-wrap; background: #f4f4f4; padding: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Keycloak Workshop Demo</h1>
+
+  <button id="loginBtn">Login</button>
+  <button id="logoutBtn" disabled>Logout</button>
+  <button id="showTokenBtn" disabled>Show Token</button>
+
+  <div id="userinfo"></div>
+
+  <script>
+    // Keycloak config
+    const keycloak = new Keycloak({
+      url: 'http://localhost:8080/auth',       // Keycloak server URL
+      realm: 'workshop',                       // Name van je Realm
+      clientId: 'frontend-demo',               // Client ID die je maakt in Keycloak
+    });
+
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const showTokenBtn = document.getElementById('showTokenBtn');
+    const userInfoDiv = document.getElementById('userinfo');
+
+    // Initialize Keycloak
+    keycloak.init({ onLoad: 'check-sso', pkceMethod: 'S256' }).then(authenticated => {
+      updateUI(authenticated);
+    });
+
+    function updateUI(authenticated) {
+      loginBtn.disabled = authenticated;
+      logoutBtn.disabled = !authenticated;
+      showTokenBtn.disabled = !authenticated;
+
+      if (authenticated) {
+        keycloak.loadUserProfile().then(profile => {
+          userInfoDiv.textContent = `Hello ${profile.firstName} ${profile.lastName}\nUsername: ${profile.username}\nRoles: ${keycloak.tokenParsed?.realm_access?.roles}`;
+        });
+      } else {
+        userInfoDiv.textContent = 'Not logged in';
+      }
+    }
+
+    loginBtn.addEventListener('click', () => {
+      keycloak.login();
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      keycloak.logout();
+    });
+
+    showTokenBtn.addEventListener('click', () => {
+      alert(keycloak.token);
+    });
+  </script>
+</body>
+</html>
