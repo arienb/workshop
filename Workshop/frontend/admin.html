@@ -46,7 +46,7 @@
         if (roles.includes("adminRole")) {
           accessToken = keycloak.token;
           document.getElementById("adminControls").style.display = "flex";
-          listUsers(); // Show users immediately
+          listUsers();
         }
       }
     });

@@ -79,7 +79,7 @@ app.put("/admin/update-user/:id", async (req, res) => {
   res.status(response.status).send(text);
 });
 
-// Reset user password
+// put user password
 app.put("/admin/reset-password/:id", async (req, res) => {
   const userId = req.params.id;
   const response = await fetch(`http://localhost:8080/admin/realms/myrealm/users/${userId}/reset-password`, {
