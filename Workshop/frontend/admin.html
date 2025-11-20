@@ -7,26 +7,28 @@
 </head>
 <body>
   <h1>Admin Panel</h1>
-  <p id="status">Loading...</p>
-
-  <div id="content">
-    <div id="adminControls" style="display:none;">
+  <div class="admin-container" id="adminControls" style="display:none;">
+    <div class="admin-box">
       <h2>Create user</h2>
       <input type="text" id="newUsername" placeholder="Username">
-      <input type="password" id="newPassword" placeholder="password">
-      <button onclick="createUser()">Create user</button>
+      <input type="password" id="newPassword" placeholder="Password">
+      <button id="createUserBtn" onclick="createUser()">Create user</button>
+    </div>
 
+    <div class="admin-box">
       <h2>Delete user</h2>
       <input type="text" id="deleteUsername" placeholder="Username">
-      <button onclick="deleteUser()">Delete user</button>
+      <button id="deleteUserBtn" onclick="deleteUser()">Delete user</button>
+    </div>
 
+    <div class="admin-box">
       <h2>All users</h2>
-      <button onclick="listUsers()">Show users</button>
       <ul id="userList"></ul>
-
-      <br><button onclick="logout()">Logout</button>
     </div>
   </div>
+  <div style="text-align: center; margin-top: 40px;">
+    <button id="logoutBtn" onclick="logout()">Logout</button>
+    </div>
 
   <script src="https://cdn.jsdelivr.net/npm/keycloak-js@latest/dist/keycloak.min.js"></script>
   <script>
@@ -39,23 +41,15 @@
     let accessToken = "";
 
     keycloak.init({ onLoad: 'login-required' }).then(authenticated => {
-    if (authenticated) {
-        const username = keycloak.tokenParsed?.preferred_username || "gebruiker";
-        document.getElementById("status").innerText = `Ingelogd als ${username}`;
-
+      if (authenticated) {
         const roles = keycloak.tokenParsed?.realm_access?.roles || [];
         if (roles.includes("adminRole")) {
-        accessToken = keycloak.token;
-        document.getElementById("adminControls").style.display = "block";
-        } else {
-        document.getElementById("status").innerText += "Geen adminrechten";
+          accessToken = keycloak.token;
+          document.getElementById("adminControls").style.display = "flex";
+          listUsers(); // Show users immediately
         }
-    } else {
-        document.getElementById("status").innerText = "Niet ingelogd";
-    }
+      }
     });
-    console.log("Token roles:", keycloak.tokenParsed?.realm_access?.roles);
-
 
     function logout() {
       keycloak.logout({ redirectUri: 'http://127.0.0.1:5500/frontend/index.html' });
@@ -82,9 +76,10 @@
         })
       }).then(res => {
         if (res.ok) {
-          alert("Gebruiker aangemaakt");
+          alert("User created");
+          listUsers();
         } else {
-          alert("Fout bij aanmaken");
+          alert("Error creating user");
         }
       });
     }
@@ -92,12 +87,12 @@
     function deleteUser() {
       const username = document.getElementById("deleteUsername").value;
 
-      fetch(`http://localhost:8080/admin/realms/myrealm/users?username=${username}`, {
+      fetch(`http://localhost:8080/admin/realms/myrealm/users?username=${username}&exact=true`, {
         headers: { "Authorization": `Bearer ${accessToken}` }
       })
       .then(res => res.json())
       .then(users => {
-        if (users.length === 0) return alert("Gebruiker niet gevonden");
+        if (users.length === 0) return alert("User not found");
         const userId = users[0].id;
 
         fetch(`http://localhost:8080/admin/realms/myrealm/users/${userId}`, {
@@ -105,9 +100,10 @@
           headers: { "Authorization": `Bearer ${accessToken}` }
         }).then(res => {
           if (res.ok) {
-            alert("Gebruiker verwijderd");
+            alert("User deleted");
+            listUsers();
           } else {
-            alert("Verwijderen mislukt");
+            alert("Deletion failed");
           }
         });
       });
@@ -128,7 +124,6 @@
         });
       });
     }
-    
   </script>
 </body>
 </html>
