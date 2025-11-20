@@ -2,16 +2,18 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Keycloak Demo</title>
+  <title>Introduction to Keycloak</title>
+  <link rel="stylesheet" href="style/main.css">
 </head>
 <body>
+  <h1>Introduction to Keycloak</h1>
+  <p class="subtitle">by Steffen & Ariën</p>
   <div id="content">
     <button id="loginBtn">Login</button>
     <button id="logoutBtn" style="display:none;">Logout</button>
     <p id="welcome"></p>
   </div>
 
-  <!-- Keycloak adapter -->
   <script src="https://cdn.jsdelivr.net/npm/keycloak-js@latest/dist/keycloak.min.js"></script>
   <script>
     const keycloak = new Keycloak({
@@ -25,16 +27,13 @@
         const roles = keycloak.tokenParsed?.realm_access?.roles || [];
         const username = keycloak.tokenParsed?.preferred_username || "gebruiker";
 
-        // Toon UI
         document.getElementById("loginBtn").style.display = "none";
         document.getElementById("logoutBtn").style.display = "inline";
         document.getElementById("welcome").innerText = `Hey, ${username}`;
 
-        // Redirect op basis van rol
         if (roles.includes("adminRole")) {
           window.location.href = "admin.html";
-        }
-        else if (roles.includes("secret")) {
+        } else if (roles.includes("secret")) {
           window.location.href = "secret.html";
         } else {
           window.location.href = "welcome.html";

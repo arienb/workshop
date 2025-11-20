@@ -3,26 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <title>Admin Panel</title>
+  <link rel="stylesheet" href="style/main.css">
 </head>
 <body>
   <h1>Admin Panel</h1>
-  <p id="status">⏳ Loading...</p>
+  <p id="status">Loading...</p>
 
-  <div id="adminControls" style="display:none;">
-    <h2>Create user</h2>
-    <input type="text" id="newUsername" placeholder="Username">
-    <input type="password" id="newPassword" placeholder="password">
-    <button onclick="createUser()">Create user</button>
+  <div id="content">
+    <div id="adminControls" style="display:none;">
+      <h2>Create user</h2>
+      <input type="text" id="newUsername" placeholder="Username">
+      <input type="password" id="newPassword" placeholder="password">
+      <button onclick="createUser()">Create user</button>
 
-    <h2>Delete user</h2>
-    <input type="text" id="deleteUsername" placeholder="Username">
-    <button onclick="deleteUser()">Delete user</button>
+      <h2>Delete user</h2>
+      <input type="text" id="deleteUsername" placeholder="Username">
+      <button onclick="deleteUser()">Delete user</button>
 
-    <h2>All users</h2>
-    <button onclick="listUsers()">Show users</button>
-    <ul id="userList"></ul>
+      <h2>All users</h2>
+      <button onclick="listUsers()">Show users</button>
+      <ul id="userList"></ul>
 
-    <br><button onclick="logout()">Logout</button>
+      <br><button onclick="logout()">Logout</button>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/keycloak-js@latest/dist/keycloak.min.js"></script>
@@ -38,7 +41,7 @@
     keycloak.init({ onLoad: 'login-required' }).then(authenticated => {
     if (authenticated) {
         const username = keycloak.tokenParsed?.preferred_username || "gebruiker";
-        document.getElementById("status").innerText = `✅ Ingelogd als ${username}`;
+        document.getElementById("status").innerText = `Ingelogd als ${username}`;
 
         const roles = keycloak.tokenParsed?.realm_access?.roles || [];
         if (roles.includes("adminRole")) {

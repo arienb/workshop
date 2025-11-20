@@ -5,9 +5,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-let adminToken = ""; // ⏳ Wordt gevuld bij opstart
+let adminToken = "";
 
-// 🔐 Token ophalen bij opstart
+// Fetch admin token on startup
 async function fetchAdminToken() {
   try {
     const response = await fetch("http://localhost:8080/realms/myrealm/protocol/openid-connect/token", {
@@ -15,8 +15,8 @@ async function fetchAdminToken() {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         client_id: "admin-cli",
-        username: "admin",         // ← jouw admin-gebruiker
-        password: "admin",         // ← jouw admin-wachtwoord
+        username: "admin",
+        password: "admin",
         grant_type: "password"
       })
     });
@@ -24,34 +24,34 @@ async function fetchAdminToken() {
     const data = await response.json();
     if (data.access_token) {
       adminToken = data.access_token;
-      console.log("✅ Admin token opgehaald");
+      console.log("Admin token retrieved");
     } else {
-      console.error("❌ Token ophalen mislukt:", data);
+      console.error("Failed to retrieve token:", data);
     }
   } catch (err) {
-    console.error("🔥 Fout bij token ophalen:", err);
+    console.error("Error fetching token:", err);
   }
 }
 
+// Get full user info by username
 app.get("/admin/user/:username", async (req, res) => {
   const username = req.params.username;
-  const response = await fetch(`http://localhost:8080/admin/realms/myrealm/users?username=${username}`, {
+  const response = await fetch(`http://localhost:8080/admin/realms/myrealm/users?username=${username}&exact=true`, {
     headers: { Authorization: `Bearer ${adminToken}` }
   });
 
   const users = await response.json();
   if (users.length > 0) {
-    res.json(users[0]); // bevat firstName, lastName, email, etc.
+    res.json(users[0]);
   } else {
-    res.status(404).send("User not found");
+    res.status(404).json({ error: "User not found" });
   }
 });
 
-
-// 🔁 Haal userId op via username
+// Get user ID by username
 app.get("/admin/user-id", async (req, res) => {
   const username = req.query.username;
-  const response = await fetch(`http://localhost:8080/admin/realms/myrealm/users?username=${username}`, {
+  const response = await fetch(`http://localhost:8080/admin/realms/myrealm/users?username=${username}&exact=true`, {
     headers: { Authorization: `Bearer ${adminToken}` }
   });
 
@@ -59,11 +59,11 @@ app.get("/admin/user-id", async (req, res) => {
   if (users.length > 0) {
     res.json({ id: users[0].id });
   } else {
-    res.status(404).send("User not found");
+    res.status(404).json({ error: "User not found" });
   }
 });
 
-// ✏️ Update profiel via Admin API
+// Update user profile
 app.put("/admin/update-user/:id", async (req, res) => {
   const userId = req.params.id;
   const response = await fetch(`http://localhost:8080/admin/realms/myrealm/users/${userId}`, {
@@ -79,7 +79,7 @@ app.put("/admin/update-user/:id", async (req, res) => {
   res.status(response.status).send(text);
 });
 
-// 🔐 Wachtwoord resetten via Admin API
+// Reset user password
 app.put("/admin/reset-password/:id", async (req, res) => {
   const userId = req.params.id;
   const response = await fetch(`http://localhost:8080/admin/realms/myrealm/users/${userId}/reset-password`, {
@@ -99,8 +99,8 @@ app.put("/admin/reset-password/:id", async (req, res) => {
   res.status(response.status).send(text);
 });
 
-// 🔁 Start proxy en haal token op
+// Start proxy and fetch token
 app.listen(3000, async () => {
-  console.log("Proxy draait op http://localhost:3000");
+  console.log("Proxy running at http://localhost:3000");
   await fetchAdminToken();
 });
