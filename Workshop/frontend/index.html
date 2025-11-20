@@ -10,8 +10,6 @@
   <p class="subtitle">by Steffen & Ariën</p>
   <div id="content">
     <button id="loginBtn">Login</button>
-    <button id="logoutBtn" style="display:none;">Logout</button>
-    <p id="welcome"></p>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/keycloak-js@latest/dist/keycloak.min.js"></script>
@@ -28,8 +26,6 @@
         const username = keycloak.tokenParsed?.preferred_username || "gebruiker";
 
         document.getElementById("loginBtn").style.display = "none";
-        document.getElementById("logoutBtn").style.display = "inline";
-        document.getElementById("welcome").innerText = `Hey, ${username}`;
 
         if (roles.includes("adminRole")) {
           window.location.href = "admin.html";
