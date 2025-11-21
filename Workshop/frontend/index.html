@@ -23,16 +23,12 @@
     keycloak.init({ onLoad: 'check-sso' }).then(authenticated => {
       if (authenticated) {
         const roles = keycloak.tokenParsed?.realm_access?.roles || [];
-        const username = keycloak.tokenParsed?.preferred_username || "gebruiker";
-
-        document.getElementById("loginBtn").style.display = "none";
-
         if (roles.includes("adminRole")) {
-          window.location.href = "admin.html";
-        } else if (roles.includes("secretRole")) {
-          window.location.href = "secret.html";
+          window.location.href = 'admin.html';
+        } else if(roles.includes("secretRole")) {
+          window.location.href = 'secret.html';
         } else {
-          window.location.href = "welcome.html";
+          window.location.href = 'welcome.html';
         }
       }
     });

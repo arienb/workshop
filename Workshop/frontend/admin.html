@@ -7,7 +7,7 @@
 </head>
 <body>
   <h1>Admin Panel</h1>
-  <div class="admin-container" id="adminControls" style="display:none;">
+  <div class="admin-container" id="adminControls" style="display:flex;">
     <div class="admin-box">
       <h2>Create user</h2>
       <input type="text" id="newUsername" placeholder="Username">
@@ -39,20 +39,27 @@
     });
 
     let accessToken = "";
-
     keycloak.init({ onLoad: 'login-required' }).then(authenticated => {
       if (authenticated) {
-        const roles = keycloak.tokenParsed?.realm_access?.roles || [];
-        if (roles.includes("adminRole")) {
-          accessToken = keycloak.token;
-          document.getElementById("adminControls").style.display = "flex";
-          listUsers();
-        }
+        accessToken = keycloak.token;
+        listUsers();
       }
     });
 
-    function logout() {
-      keycloak.logout({ redirectUri: 'http://127.0.0.1:5500/frontend/index.html' });
+    function listUsers() {
+      fetch("http://localhost:8080/admin/realms/myrealm/users", {
+        headers: { "Authorization": `Bearer ${accessToken}` }
+      })
+      .then(response => response.json())
+      .then(users => {
+        const list = document.getElementById("userList");
+        list.innerHTML = "";
+        users.forEach(user => {
+          const li = document.createElement("li");
+          li.textContent = user.username;
+          list.appendChild(li);
+        });
+      });
     }
 
     function createUser() {
@@ -90,7 +97,7 @@
       fetch(`http://localhost:8080/admin/realms/myrealm/users?username=${username}&exact=true`, {
         headers: { "Authorization": `Bearer ${accessToken}` }
       })
-      .then(res => res.json())
+      .then(response => response.json())
       .then(users => {
         if (users.length === 0) return alert("User not found");
         const userId = users[0].id;
@@ -98,8 +105,8 @@
         fetch(`http://localhost:8080/admin/realms/myrealm/users/${userId}`, {
           method: "DELETE",
           headers: { "Authorization": `Bearer ${accessToken}` }
-        }).then(res => {
-          if (res.ok) {
+        }).then(response => {
+          if (response.ok) {
             alert("User deleted");
             listUsers();
           } else {
@@ -109,21 +116,8 @@
       });
     }
 
-    function listUsers() {
-      fetch("http://localhost:8080/admin/realms/myrealm/users", {
-        headers: { "Authorization": `Bearer ${accessToken}` }
-      })
-      .then(res => res.json())
-      .then(users => {
-        const list = document.getElementById("userList");
-        list.innerHTML = "";
-        users.forEach(user => {
-          const li = document.createElement("li");
-          li.textContent = user.username;
-          list.appendChild(li);
-        });
-      });
-    }
+    document.getElementById("logoutBtn").onclick = () =>
+      keycloak.logout({ redirectUri: 'http://127.0.0.1:5500/frontend/index.html' });
   </script>
 </body>
 </html>

@@ -19,15 +19,15 @@
       clientId: "simple-web"
     });
 
-    keycloak.init({ onLoad: 'login-required' }).then(authenticated => {
+    keycloak.init({ onLoad: 'login-required'}).then(authenticated => {
       if (authenticated) {
-        const username = keycloak.tokenParsed?.preferred_username || "gebruiker";
-        document.getElementById("welcomeText").innerText = `Welcome, ${username}`;
+        const username = keycloak.tokenParsed?.preferred_username || "User";
+        document.getElementById("welcomeText").innerText = `Welcome, ${username}!`;
       }
     });
 
-    document.getElementById("logoutBtn").onclick = () =>
-      keycloak.logout({ redirectUri: 'http://127.0.0.1:5500/frontend/index.html' });
+    document.getElementById("logoutBtn").onclick = () => 
+      keycloak.logout({ redirectUri: 'http://127.0.0.1:5500/frontend/index.html'});
   </script>
 </body>
 </html>

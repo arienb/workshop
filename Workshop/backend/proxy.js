@@ -80,9 +80,39 @@ app.put("/admin/update-user/:id", async (req, res) => {
 });
 
 // put user password
-app.put("/admin/reset-password/:id", async (req, res) => {
-  const userId = req.params.id;
-  const response = await fetch(`http://localhost:8080/admin/realms/myrealm/users/${userId}/reset-password`, {
+app.put("/admin/change-password", async (req, res) => {
+  const { username, currentPassword, newPassword } = req.body;
+
+  // 1. Probeer in te loggen met huidige wachtwoord
+  const loginResponse = await fetch("http://localhost:8080/realms/myrealm/protocol/openid-connect/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: "simple-web",
+      grant_type: "password",
+      username,
+      password: currentPassword
+    })
+  });
+
+  const loginData = await loginResponse.json();
+
+  if (!loginData.access_token) {
+    return res.status(401).send("Oud wachtwoord is incorrect");
+  }
+
+  // 2. Zoek userId
+  const userRes = await fetch(`http://localhost:8080/admin/realms/myrealm/users?username=${username}&exact=true`, {
+    headers: { Authorization: `Bearer ${adminToken}` }
+  });
+
+  const users = await userRes.json();
+  if (users.length === 0) return res.status(404).send("Gebruiker niet gevonden");
+
+  const userId = users[0].id;
+
+  // 3. Wijzig wachtwoord
+  const pwRes = await fetch(`http://localhost:8080/admin/realms/myrealm/users/${userId}/reset-password`, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${adminToken}`,
@@ -90,14 +120,15 @@ app.put("/admin/reset-password/:id", async (req, res) => {
     },
     body: JSON.stringify({
       type: "password",
-      value: req.body.newPassword,
+      value: newPassword,
       temporary: false
     })
   });
 
-  const text = await response.text();
-  res.status(response.status).send(text);
+  const text = await pwRes.text();
+  res.status(pwRes.status).send(text);
 });
+
 
 // Start proxy and fetch token
 app.listen(3000, async () => {
